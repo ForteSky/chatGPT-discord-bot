@@ -305,7 +305,7 @@ class GeminiProvider(BaseProvider):
     def __init__(self, api_key: str):
         super().__init__(api_key)
         genai.configure(
-            api_key=api_key=api_key,
+            api_key=api_key,
             transport="rest",
             client_options={"api_endpoint": "https://generativelanguage.googleapis.com/v1"}
         )
