@@ -7,8 +7,6 @@ services:
       dockerfile: Dockerfile
     image: chatgpt-discord-bot:latest
     container_name: chatgpt-discord-bot
-    env_file:
-      - .env
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
