@@ -351,33 +351,41 @@ class GeminiProvider(BaseProvider):
 
     async def generate_image(self, prompt: str, model: Optional[str] = None, **kwargs) -> str:
         try:
-            # Imagen via Gemini API
-            image_model = model or "imagen-3.0-generate-001"
-
+            image_model = model or "gemini-2.5-flash"
+    
             response = await asyncio.to_thread(
-                self.client.models.generate_images,
+                self.client.models.generate_content,
                 model=image_model,
-                prompt=prompt,
+                contents=[{
+                    "role": "user",
+                    "parts": [
+                        {"text": f"Generate a high quality image of: {prompt}"}
+                    ]
+                }],
                 config={
-                    "number_of_images": 1,
-                    "aspect_ratio": kwargs.get("aspect_ratio", "1:1")
+                    "response_modalities": ["TEXT", "IMAGE"]
                 }
             )
-
-            if not response or not response.images:
-                raise Exception("No image returned from Gemini Imagen")
-
-            # Return base64 image bytes
-            return response.images[0].image_bytes
-
+    
+            # Extract image bytes
+            if not response or not response.candidates:
+                raise Exception("No response from Gemini image generation")
+    
+            for part in response.candidates[0].content.parts:
+                if "inline_data" in part:
+                    return part["inline_data"]["data"]  # base64 image bytes
+    
+            raise Exception("No image data found in Gemini response")
+    
         except Exception as e:
             logger.error(f"Gemini image generation error: {e}")
             raise
 
+
     def get_available_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("gemini-2.5-flash", ProviderType.GEMINI, "Fast, cheap Gemini model", supports_vision=True),
-            ModelInfo("gemini-2.5-pro", ProviderType.GEMINI, "High quality Gemini model", supports_vision=True),
+            ModelInfo("gemini-2.5-flash", ProviderType.GEMINI, "Fast, cheap Gemini model", supports_vision=True, supports_image_generation=True),
+            ModelInfo("gemini-2.5-pro", ProviderType.GEMINI, "High quality Gemini model", supports_vision=True, supports_image_generation=True),
         ]
 
     def supports_image_generation(self) -> bool:
