@@ -11,6 +11,13 @@ services:
     environment:
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
       - GEMINI_KEY=${GEMINI_API_KEY}
+      - LOGGING=${LOGGING}
+      - REPLYING_ALL=${REPLYING_ALL}
+      - DEFAULT_PROVIDER=${DEFAULT_PROVIDER}
+      - DEFAULT_MODEL=${DEFAULT_MODEL}
+      - ADMIN_USER_IDS=${ADMIN_USER_IDS}
+      - MAX_CONVERSATION_LENGTH=${MAX_CONVERSATION_LENGTH}
+      - CONVERSATION_TRIM_SIZE=${CONVERSATION_TRIM_SIZE}
     security_opt:
       - no-new-privileges:true
     read_only: true
