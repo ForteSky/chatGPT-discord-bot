@@ -78,11 +78,6 @@ class FreeProvider(BaseProvider):
                 'name': 'Blackbox'
             },
             {
-                'provider': g4f.Provider.Chatai, 
-                'models': ['gpt-3.5-turbo', 'gpt-4'],
-                'name': 'Chatai'
-            },
-            {
                 'provider': g4f.Provider.CohereForAI_C4AI_Command,
                 'models': ['command-r-plus', 'command-r'],
                 'name': 'CohereForAI'
