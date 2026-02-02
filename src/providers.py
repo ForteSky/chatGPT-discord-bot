@@ -309,7 +309,7 @@ class GeminiProvider(BaseProvider):
     async def chat_completion(self, messages: List[Dict[str, str]], model: str, **kwargs) -> str:
         try:
             if not model:
-                model = "gemini-2.0-flash-exp"
+                model = "gemini-1.5-flash"
             
             # Initialize model
             gemini_model = genai.GenerativeModel(model)
@@ -357,10 +357,8 @@ class GeminiProvider(BaseProvider):
     
     def get_available_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("gemini-2.0-flash-exp", ProviderType.GEMINI, "Latest experimental model", supports_vision=True),
+            ModelInfo("gemini-1.5-flash", ProviderType.GEMINI, "Latest experimental model", supports_vision=True),
             ModelInfo("gemini-1.5-pro", ProviderType.GEMINI, "Advanced reasoning", supports_vision=True),
-            ModelInfo("gemini-1.5-flash", ProviderType.GEMINI, "Fast multimodal", supports_vision=True),
-            ModelInfo("imagen-3.0-generate-001", ProviderType.GEMINI, "Image generation", supports_image_generation=True),
         ]
     
     def supports_image_generation(self) -> bool:
