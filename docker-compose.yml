@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-      - GEMINI_KEY=${GEMINI_API_KEY}
+      - GEMINI_KEY=${GEMINI_KEY}
       - LOGGING=${LOGGING}
       - REPLYING_ALL=${REPLYING_ALL}
       - DEFAULT_PROVIDER=${DEFAULT_PROVIDER}
