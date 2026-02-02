@@ -71,18 +71,7 @@ class FreeProvider(BaseProvider):
         
         # ONLY use providers that work 100% without ANY authentication
         # These have been tested and verified to work in 2025
-        self.working_providers = [
-            {
-                'provider': g4f.Provider.Blackbox,
-                'models': ['blackboxai'],
-                'name': 'Blackbox'
-            },
-            {
-                'provider': g4f.Provider.CohereForAI_C4AI_Command,
-                'models': ['command-r-plus', 'command-r'],
-                'name': 'CohereForAI'
-            }
-        ]
+        self.working_providers = []
         
         # Create provider list for RetryProvider
         providers_list = [p['provider'] for p in self.working_providers]
