@@ -11,7 +11,7 @@ import g4f
 from g4f.client import Client
 from g4f.Provider import RetryProvider
 from openai import AsyncOpenAI
-import google.generativeai as genai
+from google.genai import Client as GeminiClient
 from anthropic import AsyncAnthropic
 import aiohttp
 
@@ -300,70 +300,86 @@ class ClaudeProvider(BaseProvider):
 
 
 class GeminiProvider(BaseProvider):
-    """Official Google Gemini API provider"""
-    
+    """Official Google Gemini API provider (google-genai SDK)"""
+
     def __init__(self, api_key: str):
         super().__init__(api_key)
-        genai.configure(
-            api_key=api_key,
-            transport="rest",
-            client_options={"api_endpoint": "https://generativelanguage.googleapis.com/v1"}
-        )
-        
+
+        # Initialize modern Gemini client (v1 API)
+        self.client = GeminiClient(api_key=api_key)
+
     async def chat_completion(self, messages: List[Dict[str, str]], model: str, **kwargs) -> str:
         try:
             if not model:
-                model = "models/gemini-1.5-flash-latest"
-            
-            # Initialize model
-            gemini_model = genai.GenerativeModel(model)
-            
+                model = "gemini-2.5-flash"
+
             # Convert messages to Gemini format
-            chat = gemini_model.start_chat(history=[])
-            
-            # Process messages
+            contents = []
             for msg in messages:
-                if msg["role"] == "user":
-                    response = await asyncio.to_thread(
-                        chat.send_message,
-                        msg["content"]
-                    )
-                elif msg["role"] == "assistant":
-                    # Add assistant messages to history
-                    chat.history.append({
-                        "role": "model",
-                        "parts": [msg["content"]]
+                if msg["role"] == "system":
+                    # Gemini doesn't have system role directly; prepend as user context
+                    contents.append({
+                        "role": "user",
+                        "parts": [{"text": f"[SYSTEM]: {msg['content']}"}]
                     })
-            
+                elif msg["role"] == "user":
+                    contents.append({
+                        "role": "user",
+                        "parts": [{"text": msg["content"]}]
+                    })
+                elif msg["role"] == "assistant":
+                    contents.append({
+                        "role": "model",
+                        "parts": [{"text": msg["content"]}]
+                    })
+
+            # Call Gemini
+            response = await asyncio.to_thread(
+                self.client.models.generate_content,
+                model=model,
+                contents=contents
+            )
+
+            if not response or not response.text:
+                raise Exception("Empty response from Gemini")
+
             return response.text
+
         except Exception as e:
             logger.error(f"Gemini provider error: {e}")
             raise
-    
+
     async def generate_image(self, prompt: str, model: Optional[str] = None, **kwargs) -> str:
         try:
-            # Use Imagen via Gemini
-            model_name = model or "imagen-3.0-generate-001"
-            imagen = genai.ImageGenerationModel(model_name)
-            
+            # Imagen via Gemini API
+            image_model = model or "imagen-3.0-generate-001"
+
             response = await asyncio.to_thread(
-                imagen.generate_images,
+                self.client.models.generate_images,
+                model=image_model,
                 prompt=prompt,
-                number_of_images=1,
-                aspect_ratio=kwargs.get("aspect_ratio", "1:1")
+                config={
+                    "number_of_images": 1,
+                    "aspect_ratio": kwargs.get("aspect_ratio", "1:1")
+                }
             )
-            
-            # Save image and return URL or base64
-            return response.images[0]._image_bytes
+
+            if not response or not response.images:
+                raise Exception("No image returned from Gemini Imagen")
+
+            # Return base64 image bytes
+            return response.images[0].image_bytes
+
         except Exception as e:
             logger.error(f"Gemini image generation error: {e}")
             raise
-    
+
     def get_available_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("models/gemini-1.5-flash-latest", ProviderType.GEMINI, "Latest experimental model", supports_vision=True),
+            ModelInfo("gemini-2.5-flash", ProviderType.GEMINI, "Fast, cheap Gemini model", supports_vision=True),
+            ModelInfo("gemini-2.5-pro", ProviderType.GEMINI, "High quality Gemini model", supports_vision=True),
         ]
-    
+
     def supports_image_generation(self) -> bool:
         return True
 
