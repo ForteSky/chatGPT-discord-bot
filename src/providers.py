@@ -311,7 +311,7 @@ class GeminiProvider(BaseProvider):
     async def chat_completion(self, messages: List[Dict[str, str]], model: str, **kwargs) -> str:
         try:
             if not model:
-                model = "gemini-2.0-flash-lite"
+                model = "gemini-2.0-flash"
 
             # Convert messages to Gemini format
             contents = []
@@ -351,7 +351,7 @@ class GeminiProvider(BaseProvider):
 
     async def generate_image(self, prompt: str, model: Optional[str] = None, **kwargs) -> str:
         try:
-            image_model = model or "gemini-2.0-flash-lite"
+            image_model = model or "gemini-2.0-flash"
     
             response = await asyncio.to_thread(
                 self.client.models.generate_content,
@@ -384,7 +384,7 @@ class GeminiProvider(BaseProvider):
 
     def get_available_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("gemini-2.0-flash-lite", ProviderType.GEMINI, "Fast, cheap Gemini model", supports_vision=True, supports_image_generation=True),
+            ModelInfo("gemini-2.0-flash", ProviderType.GEMINI, "Fast, cheap Gemini model", supports_vision=True, supports_image_generation=True),
         ]
 
     def supports_image_generation(self) -> bool:
